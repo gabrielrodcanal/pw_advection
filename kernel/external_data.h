@@ -146,8 +146,6 @@ static void write_y_and_z(hls::stream<REAL_TYPE> & in_su_stream, hls::stream<REA
     struct packaged_double element_sw;
     for (int j=0;j<8;j++) {
         element_sw.data[j]=in_sw_stream.read();
-        if (element_sw.data[j] == 372.0)
-            printf("READ 372 IN SECOND LOOP\n");
     }
     output_sw[i]=element_sw;
   }
@@ -156,25 +154,24 @@ static void write_y_and_z(hls::stream<REAL_TYPE> & in_su_stream, hls::stream<REA
   unsigned int remainder=(chunk_size_y*size_z) - (total_write*EXTERNAL_DATA_WIDTH) + (EXTERNAL_DATA_WIDTH - sp_remainder);
   if (remainder > 0) {
     struct packaged_double element_su;
+    for(int j = 0; j < EXTERNAL_DATA_WIDTH; j++) element_su.data[j] = 0.0;
     remainder_u_loop:
     for (int j=0;j<remainder;j++) element_su.data[j]=in_su_stream.read();
     output_su[total_write]=element_su;
 
     struct packaged_double element_sv;
+    for(int j = 0; j < EXTERNAL_DATA_WIDTH; j++) element_sv.data[j] = 0.0;
     remainder_v_loop:
     for (int j=0;j<remainder;j++) element_sv.data[j]=in_sv_stream.read();
     output_sv[total_write]=element_sv;
 
     struct packaged_double element_sw;
+    for(int j = 0; j < EXTERNAL_DATA_WIDTH; j++) element_sw.data[j] = 0.0;
     remainder_w_loop:
     for (int j=0;j<remainder;j++) {
         element_sw.data[j]=in_sw_stream.read();
-        if (element_sw.data[j] == 372.0)
-            printf("READ 372 IN THIRD LOOP, j: %d, data: %lf\n", j, element_sw.data[j]);
     }
 
-    output_sw[total_write]=element_sw;
-    for(int j = 0; j < EXTERNAL_DATA_WIDTH; j++)
-        printf("REMAINDER: OUTPUT_SW[%d][%d] = %lf\n", total_write, j, output_sw[total_write].data[j]);
+    output_sw[main_retrieve_part]=element_sw;
   }
 }
