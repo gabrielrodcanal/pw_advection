@@ -150,6 +150,20 @@ static void initiateData(unsigned int size_in_x, unsigned int size_in_y, unsigne
       (v_data[i])[j]=20.0;
       (w_data[i])[j]=30.0;
     }
+    for (unsigned int j=0;j<cube_size;j++) {
+      (w_data[i])[j] = 0.0;
+    }
+
+    // Data layout as in the original Fortran code. It takes halos into account
+    int counter = 1;
+    int y_counter = 0;
+    for (unsigned int j=2*size_in_y*size_in_z;j<cube_size-2*size_in_y*size_in_z;j+=size_in_z) {
+        if (y_counter < size_in_y-4) {
+            for(int k=1;k<size_in_z-1;k++)
+              (w_data[i])[j+k] = counter++;
+        }
+        y_counter = (y_counter + 1) % size_in_y;
+    }
   }
 
   tzc1_data=(REAL_TYPE*) memalign(PAGESIZE, sizeof(REAL_TYPE) * size_in_z);

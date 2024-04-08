@@ -114,7 +114,6 @@ void advect_w(hls::stream<struct stencil_data> & u_stencil_stream, hls::stream<s
 
 static void advect_w_chunk(hls::stream<struct stencil_data> & u_stencil_stream, hls::stream<struct stencil_data> & v_stencil_stream, hls::stream<struct stencil_data> & w_stencil_stream,
     hls::stream<REAL_TYPE> & result_stream, REAL_TYPE tzd1[MAX_Z_SIZE], REAL_TYPE tzd2[MAX_Z_SIZE], double tcx, double tcy, unsigned int size_x, unsigned int size_y, unsigned int size_z) {
-    static float next_val = 1.0;
   x_loop:
   for (unsigned int i=2;i<size_x-2;i++) {
     y_loop:
@@ -134,11 +133,7 @@ static void advect_w_chunk(hls::stream<struct stencil_data> & u_stencil_stream, 
           double sw_v=tcy*(w_stencil.values[1][0][1] * (v_stencil.values[1][0][1] + v_stencil.values[1][0][2]) - w_stencil.values[1][2][1] * (v_stencil.values[1][1][1] + v_stencil.values[1][1][2]));
 
           //result_stream.write(sw_z+sw_x+sw_v);
-          if (next_val == 371.0) printf("WRITING 371\n");
-          if (next_val == 372.0) printf("WRITING 372\n");
-          if (next_val == 373.0) printf("WRITING 373\n");
-          result_stream.write(next_val);
-          next_val++;
+          result_stream.write(w_stencil.values[0][0][0]);
         } else {
           result_stream.write(0); // Ignore top
         }

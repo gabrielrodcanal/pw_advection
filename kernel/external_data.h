@@ -35,6 +35,7 @@ void load_data(struct packaged_double * input_u, struct packaged_double * input_
 
 static void load_y_and_z(struct packaged_double * input_u, struct packaged_double * input_v, struct packaged_double * input_w, hls::stream<REAL_TYPE> & out_u_stream,
     hls::stream<REAL_TYPE> & out_v_stream, hls::stream<REAL_TYPE> & out_w_stream, unsigned int start_index, unsigned int chunk_size_y, unsigned int size_z) {
+    static double next_val = 1.0;
   // First handle the case where start of second row does not divide evenly into external data width
   unsigned int start_point=start_index / EXTERNAL_DATA_WIDTH;
 
@@ -50,7 +51,10 @@ static void load_y_and_z(struct packaged_double * input_u, struct packaged_doubl
     for (int j=EXTERNAL_DATA_WIDTH-sp_remainder;j<EXTERNAL_DATA_WIDTH;j++) out_v_stream.write(element_v.data[j]);
 
     struct packaged_double element_w=input_w[start_point];
-    for (int j=EXTERNAL_DATA_WIDTH-sp_remainder;j<EXTERNAL_DATA_WIDTH;j++) out_w_stream.write(element_w.data[j]);
+    for (int j=EXTERNAL_DATA_WIDTH-sp_remainder;j<EXTERNAL_DATA_WIDTH;j++) {
+        out_w_stream.write(element_w.data[j]);
+        //out_w_stream.write(next_val++);
+    }
     start_point=start_point+1;
   }
 
@@ -68,7 +72,10 @@ static void load_y_and_z(struct packaged_double * input_u, struct packaged_doubl
 
     struct packaged_double element_w=input_w[i];
     unpack_w_loop:
-    for (int j=0;j<EXTERNAL_DATA_WIDTH;j++) out_w_stream.write(element_w.data[j]);
+    for (int j=0;j<EXTERNAL_DATA_WIDTH;j++) {
+        out_w_stream.write(element_w.data[j]);
+        //out_w_stream.write(next_val++);
+    }
   }
 
   // Handle uneven decomposition of last part of data wrt external data width
@@ -84,7 +91,10 @@ static void load_y_and_z(struct packaged_double * input_u, struct packaged_doubl
 
     struct packaged_double element_w=input_w[total_retrieve];
     remainder_w_loop:
-    for (int j=0;j<remainder;j++) out_w_stream.write(element_w.data[j]);
+    for (int j=0;j<remainder;j++) {
+        out_w_stream.write(element_w.data[j]);
+        //out_w_stream.write(next_val++);
+    }
   }
 }
 
