@@ -51,6 +51,12 @@ int main(int argc, char * argv[]) {
   initiateData(size_in_x, size_in_y, size_in_z);
   init_device(argv[1], size_in_x, size_in_y, size_in_z);
 
+  //unsigned int partial_kernel_x_size=size_in_x/NUM_KERNELS;
+  //size_t cube_size=partial_kernel_x_size * size_in_y * size_in_z;
+  //for (unsigned int j=0;j<cube_size;j++) {
+  //  printf("u_data[%d] = %lf\n", j, (u_data[0])[j]);
+  //}
+
   execute_entire_kernel_on_device(copyOnEvent, kernelExecutionEvent, copyOffEvent);
 #ifdef DISPLAYRESULTS  
   display_results();
@@ -65,6 +71,19 @@ int main(int argc, char * argv[]) {
   double totalFLOPS=(getTotalFLOPS(x_size, y_size) / ((copyOnTime+kernelTime+copyOffTime) /1000)) / 1024 / 1024 / 1024;
   double kernelFLOPS=(getTotalFLOPS(x_size, y_size) / (kernelTime / 1000)) / 1024 / 1024 / 1024;
   printf("Overall GFLOPS %.2f, kernel GFLOPS %.2f\n", totalFLOPS, kernelFLOPS);
+
+  // Print output after kernel execution
+  unsigned int partial_kernel_x_size=size_in_x/NUM_KERNELS;
+  size_t cube_size=partial_kernel_x_size * size_in_y * size_in_z;
+
+  int counter_zeros = 0;
+  for (unsigned int j=0;j<cube_size;j++) {
+      //if(sw_data[0][j] != 0)
+        printf("sw[%d] = %lf\n", j, (sw_data[0])[j]);
+      //else
+      //    counter_zeros += 1;
+  }  
+  //printf("counter_zeros: %d\n", counter_zeros);
 
   for (int i=0;i<NUM_KERNELS;i++) {
     delete u_buffer[i];
@@ -127,9 +146,9 @@ static void initiateData(unsigned int size_in_x, unsigned int size_in_y, unsigne
     sw_data[i]=(REAL_TYPE*) memalign(PAGESIZE, sizeof(REAL_TYPE) * cube_size);  
 
     for (unsigned int j=0;j<cube_size;j++) {
-      (u_data[i])[j]=23.4;
-      (v_data[i])[j]=18.8;
-      (w_data[i])[j]=3.1;
+      (u_data[i])[j]=10.0;
+      (v_data[i])[j]=20.0;
+      (w_data[i])[j]=30.0;
     }
   }
 
@@ -139,13 +158,13 @@ static void initiateData(unsigned int size_in_x, unsigned int size_in_y, unsigne
   tzd2_data=(REAL_TYPE*) memalign(PAGESIZE, sizeof(REAL_TYPE) * size_in_z);  
 
   for (unsigned int i=0;i<size_in_z;i++) {
-    tzc1_data[i]=12.3;
-    tzc2_data[i]=1.9;
-    tzd1_data[i]=5.6;
-    tzd2_data[i]=23.8;
+    tzc1_data[i]=50.0;
+    tzc2_data[i]=15.0;
+    tzd1_data[i]=100.0;
+    tzd2_data[i]=5.0;
   }
-  tcx=99.4;
-  tcy=12.3;
+  tcx=2.0;
+  tcy=2.0;
 }
 
 static void execute_entire_kernel_on_device(cl::Event * copyOnEvents, cl::Event * kernelExecutionEvents, cl::Event * copyOffEvents) {

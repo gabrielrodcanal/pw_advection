@@ -123,7 +123,11 @@ static void write_y_and_z(hls::stream<REAL_TYPE> & in_su_stream, hls::stream<REA
     output_sv[start_point]=element_sv;
 
     struct packaged_double element_sw;
-    for (int j=EXTERNAL_DATA_WIDTH-sp_remainder;j<EXTERNAL_DATA_WIDTH;j++) element_sw.data[j]=in_sw_stream.read();
+    for (int j=EXTERNAL_DATA_WIDTH-sp_remainder;j<EXTERNAL_DATA_WIDTH;j++) {
+        element_sw.data[j]=in_sw_stream.read();
+        if (element_sw.data[j] == 372.0)
+            printf("READ 372 IN FIRST LOOP\n");
+    }
     output_sw[start_point]=element_sw;
     start_point=start_point+1;
   }
@@ -140,7 +144,11 @@ static void write_y_and_z(hls::stream<REAL_TYPE> & in_su_stream, hls::stream<REA
     output_sv[i]=element_sv;
 
     struct packaged_double element_sw;
-    for (int j=0;j<8;j++) element_sw.data[j]=in_sw_stream.read();
+    for (int j=0;j<8;j++) {
+        element_sw.data[j]=in_sw_stream.read();
+        if (element_sw.data[j] == 372.0)
+            printf("READ 372 IN SECOND LOOP\n");
+    }
     output_sw[i]=element_sw;
   }
 
@@ -159,7 +167,14 @@ static void write_y_and_z(hls::stream<REAL_TYPE> & in_su_stream, hls::stream<REA
 
     struct packaged_double element_sw;
     remainder_w_loop:
-    for (int j=0;j<remainder;j++) element_sw.data[j]=in_sw_stream.read();
+    for (int j=0;j<remainder;j++) {
+        element_sw.data[j]=in_sw_stream.read();
+        if (element_sw.data[j] == 372.0)
+            printf("READ 372 IN THIRD LOOP, j: %d, data: %lf\n", j, element_sw.data[j]);
+    }
+
     output_sw[total_write]=element_sw;
+    for(int j = 0; j < EXTERNAL_DATA_WIDTH; j++)
+        printf("REMAINDER: OUTPUT_SW[%d][%d] = %lf\n", total_write, j, output_sw[total_write].data[j]);
   }
 }
