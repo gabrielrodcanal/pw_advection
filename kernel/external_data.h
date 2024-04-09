@@ -125,18 +125,19 @@ static void write_y_and_z(hls::stream<REAL_TYPE> & in_su_stream, hls::stream<REA
 
   if (sp_remainder > 0 && sp_remainder < EXTERNAL_DATA_WIDTH) {
     struct packaged_double element_su;
+    for(int j = 0; j < EXTERNAL_DATA_WIDTH; j++) element_su.data[j] = 0.0;
     for (int j=EXTERNAL_DATA_WIDTH-sp_remainder;j<EXTERNAL_DATA_WIDTH;j++) element_su.data[j]=in_su_stream.read();
     output_su[start_point]=element_su;
 
     struct packaged_double element_sv;
+    for(int j = 0; j < EXTERNAL_DATA_WIDTH; j++) element_sv.data[j] = 0.0;
     for (int j=EXTERNAL_DATA_WIDTH-sp_remainder;j<EXTERNAL_DATA_WIDTH;j++) element_sv.data[j]=in_sv_stream.read();
     output_sv[start_point]=element_sv;
 
     struct packaged_double element_sw;
+    for(int j = 0; j < EXTERNAL_DATA_WIDTH; j++) element_sw.data[j] = 0.0;
     for (int j=EXTERNAL_DATA_WIDTH-sp_remainder;j<EXTERNAL_DATA_WIDTH;j++) {
         element_sw.data[j]=in_sw_stream.read();
-        if (element_sw.data[j] == 372.0)
-            printf("READ 372 IN FIRST LOOP\n");
     }
     output_sw[start_point]=element_sw;
     start_point=start_point+1;
