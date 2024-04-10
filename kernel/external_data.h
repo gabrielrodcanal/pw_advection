@@ -53,7 +53,6 @@ static void load_y_and_z(struct packaged_double * input_u, struct packaged_doubl
     struct packaged_double element_w=input_w[start_point];
     for (int j=EXTERNAL_DATA_WIDTH-sp_remainder;j<EXTERNAL_DATA_WIDTH;j++) {
         out_w_stream.write(element_w.data[j]);
-        //out_w_stream.write(next_val++);
     }
     start_point=start_point+1;
   }
@@ -74,7 +73,6 @@ static void load_y_and_z(struct packaged_double * input_u, struct packaged_doubl
     unpack_w_loop:
     for (int j=0;j<EXTERNAL_DATA_WIDTH;j++) {
         out_w_stream.write(element_w.data[j]);
-        //out_w_stream.write(next_val++);
     }
   }
 
@@ -93,7 +91,6 @@ static void load_y_and_z(struct packaged_double * input_u, struct packaged_doubl
     remainder_w_loop:
     for (int j=0;j<remainder;j++) {
         out_w_stream.write(element_w.data[j]);
-        //out_w_stream.write(next_val++);
     }
   }
 }
@@ -164,25 +161,51 @@ static void write_y_and_z(hls::stream<REAL_TYPE> & in_su_stream, hls::stream<REA
   // Now do the remainder elements if doesn't divide evenly
   unsigned int remainder=(chunk_size_y*size_z) - (total_write*EXTERNAL_DATA_WIDTH) + (EXTERNAL_DATA_WIDTH - sp_remainder);
   if (remainder > 0) {
+    int remainding_elements_u = remainder;
+    int remainding_burst = 0;
     struct packaged_double element_su;
-    for(int j = 0; j < EXTERNAL_DATA_WIDTH; j++) element_su.data[j] = 0.0;
     remainder_u_loop:
-    for (int j=0;j<remainder;j++) element_su.data[j]=in_su_stream.read();
-    output_su[total_write]=element_su;
-
-    struct packaged_double element_sv;
-    for(int j = 0; j < EXTERNAL_DATA_WIDTH; j++) element_sv.data[j] = 0.0;
-    remainder_v_loop:
-    for (int j=0;j<remainder;j++) element_sv.data[j]=in_sv_stream.read();
-    output_sv[total_write]=element_sv;
-
-    struct packaged_double element_sw;
-    for(int j = 0; j < EXTERNAL_DATA_WIDTH; j++) element_sw.data[j] = 0.0;
-    remainder_w_loop:
-    for (int j=0;j<remainder;j++) {
-        element_sw.data[j]=in_sw_stream.read();
+    while(remainding_elements_u > 0) {
+        for(int j = 0; j < EXTERNAL_DATA_WIDTH; j++) element_su.data[j] = 0.0;
+        int ub = (current_remainder_u < EXTERNAL_DATA_WIDTH) ? current_remainder_u : EXTERNAL_DATA_WIDTH;
+        for (int j=0;j<ub;j++) {
+            element_su.data[j]=in_su_stream.read();
+            remainding_elements_u--;
+        }
+        output_su[main_retrieve_part + remainding_burst * EXTERNAL_DATA_WIDTH]=element_su;
+        remainding_burst++;
     }
 
-    output_sw[main_retrieve_part]=element_sw;
+    int remainding_elements_v = remainder;
+    remainding_burst = 0;
+    struct packaged_double element_sv;
+    remainder_v_loop:
+    while(remainding_elements_v > 0) {
+        for(int j = 0; j < EXTERNAL_DATA_WIDTH; j++) element_sv.data[j] = 0.0;
+        int ub = (current_remainder_v < EXTERNAL_DATA_WIDTH) ? current_remainder_v : EXTERNAL_DATA_WIDTH;
+        for (int j=0;j<ub;j++) {
+            element_sv.data[j]=in_sv_stream.read();
+            output_sv[main_retrieve_part]=element_sv;
+            remainding_elements_v--;
+        }
+        output_su[main_retrieve_part + remainding_burst * EXTERNAL_DATA_WIDTH]=element_sv;
+        remainding_burst++;
+    }
+
+    int remainding_elements_w = remainder;
+    int remainding_burst = 0;
+    struct packaged_double element_sw;
+    remainder_w_loop:
+    while(remainding_elements_w) {
+        int current_remainder_w = remainding_elements_w;
+        for(int j = 0; j < EXTERNAL_DATA_WIDTH; j++) element_sw.data[j] = 0.0;
+        int ub = (current_remainder_w < EXTERNAL_DATA_WIDTH) ? current_remainder_w : EXTERNAL_DATA_WIDTH;
+        for (int j=0;j<ub;j++) {
+            element_sw.data[j]=in_sw_stream.read();
+            remainding_elements_w--;
+        }
+        output_sw[main_retrieve_part + remainding_burst]=element_sw;
+        remainding_burst++;
+    }
   }
 }
