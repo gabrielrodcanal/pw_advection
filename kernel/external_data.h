@@ -166,6 +166,7 @@ static void write_y_and_z(hls::stream<REAL_TYPE> & in_su_stream, hls::stream<REA
     struct packaged_double element_su;
     remainder_u_loop:
     while(remainding_elements_u > 0) {
+        int current_remainder_u = remainding_elements_u;
         for(int j = 0; j < EXTERNAL_DATA_WIDTH; j++) element_su.data[j] = 0.0;
         int ub = (current_remainder_u < EXTERNAL_DATA_WIDTH) ? current_remainder_u : EXTERNAL_DATA_WIDTH;
         for (int j=0;j<ub;j++) {
@@ -181,6 +182,7 @@ static void write_y_and_z(hls::stream<REAL_TYPE> & in_su_stream, hls::stream<REA
     struct packaged_double element_sv;
     remainder_v_loop:
     while(remainding_elements_v > 0) {
+        int current_remainder_v = remainding_elements_v;
         for(int j = 0; j < EXTERNAL_DATA_WIDTH; j++) element_sv.data[j] = 0.0;
         int ub = (current_remainder_v < EXTERNAL_DATA_WIDTH) ? current_remainder_v : EXTERNAL_DATA_WIDTH;
         for (int j=0;j<ub;j++) {
@@ -193,7 +195,7 @@ static void write_y_and_z(hls::stream<REAL_TYPE> & in_su_stream, hls::stream<REA
     }
 
     int remainding_elements_w = remainder;
-    int remainding_burst = 0;
+    remainding_burst = 0;
     struct packaged_double element_sw;
     remainder_w_loop:
     while(remainding_elements_w) {

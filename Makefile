@@ -65,6 +65,13 @@ $(XCLBIN): $(OBJECTS)
 $(HOST_EXE): host/host.cpp
   g++ $(CXXFLAGS) -o bin/host '$<' $(CXXFLAGS2)
 
+# Building tests
+test: test-odd_z
+
+test-odd_z: test/odd_z/odd_z.cpp
+  g++ $(CXXFLAGS) -o test/odd_z/c-test-odd_z '$<' $(CXXFLAGS2)
+  gfortran test/odd_z/odd_z-pw_advection.f90 -o test/odd_z/f-odd_z-pw_advection 
+
 .PHONY: cpu
 cpu: cpu/cpu_code.c
   g++ $(CXXFLAGS) -o bin/cpu_code '$<' $(CXXFLAGS2) -fopenmp
