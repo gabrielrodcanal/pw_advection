@@ -48,7 +48,11 @@ static void advect_u_chunk(hls::stream<struct stencil_data> & u_stencil_stream, 
           // Lid
           su_z=tzc1[k] * u_stencil.values[1][1][0] * (w_stencil.values[1][1][0] + w_stencil.values[2][1][0]);
         }
+#ifdef _TEST
+        result_stream.write(u_stencil.values[0][0][0]);
+#else
         result_stream.write(su_x+su_y+su_z);
+#endif
       }
     }
   }
@@ -92,7 +96,11 @@ static void advect_v_chunk(hls::stream<struct stencil_data> & u_stencil_stream, 
           // Lid
           sv_z=tzc1[k] * u_stencil.values[1][1][0] * (w_stencil.values[1][1][0] + w_stencil.values[1][2][0]);
         }
+#ifdef _TEST
+        result_stream.write(v_stencil.values[0][0][0]);
+#else
         result_stream.write(sv_y+sv_x+sv_z);
+#endif
       }
     }
   }
@@ -132,8 +140,11 @@ static void advect_w_chunk(hls::stream<struct stencil_data> & u_stencil_stream, 
           double sw_x=tcx*(w_stencil.values[0][1][1]*(u_stencil.values[1][1][1] + u_stencil.values[0][1][2]) - w_stencil.values[2][1][1] * (u_stencil.values[1][1][1] + u_stencil.values[1][1][2]));
           double sw_v=tcy*(w_stencil.values[1][0][1] * (v_stencil.values[1][0][1] + v_stencil.values[1][0][2]) - w_stencil.values[1][2][1] * (v_stencil.values[1][1][1] + v_stencil.values[1][1][2]));
 
-          //result_stream.write(sw_z+sw_x+sw_v);
+#ifdef _TEST
           result_stream.write(w_stencil.values[0][0][0]);
+#else
+          result_stream.write(sw_z+sw_x+sw_v);
+#endif
         } else {
           result_stream.write(0); // Ignore top
         }
