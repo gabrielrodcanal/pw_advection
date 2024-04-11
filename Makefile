@@ -30,6 +30,7 @@ TEMP_DIR := ./_x.$(TARGET)
 SOURCES  := $(wildcard $(DEVICE_SRCDIR)/*.cpp)
 INCLUDES := $(wildcard $(DEVICE_SRCDIR)/*.h)
 OBJECTS  := $(SOURCES:$(DEVICE_SRCDIR)/%.cpp=%.xo)
+OBJECTS_TEST  := $(SOURCES:$(DEVICE_SRCDIR)/%.cpp=%.xo)
 
 # Host building global settings
 CXXFLAGS := -I$(XILINX_XRT)/include/ -I$(XILINX_VIVADO)/include/ -Wall -O3 -std=c++11 -L$(XILINX_XRT)/lib/ -lpthread -lrt -lstdc++
@@ -66,7 +67,13 @@ $(HOST_EXE): host/host.cpp
   g++ $(CXXFLAGS) -o bin/host '$<' $(CXXFLAGS2)
 
 # Building tests
-test: c-test f-test
+.PHONY: test
+test: c-test f-test mkrefdir $(OBJECTS_TEST) $(XCLBIN)
+  cp reference_files_$(TARGET)/$(XCLBIN) bin/.
+
+$(OBJECTS_TEST): %.xo : $(DEVICE_SRCDIR)/%.cpp
+  cd reference_files_$(TARGET) ; v++ $(KRNL_COMPILE_OPTS) -c -k pw_advection -I'../include' -I'../$(<D)' -o'$@' ../$< -D_TEST
+
 
 c-test: test/test.cpp
   g++ $(CXXFLAGS) -o test/c-test '$<' $(CXXFLAGS2)
