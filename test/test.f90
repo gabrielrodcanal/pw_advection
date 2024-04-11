@@ -69,11 +69,13 @@ use, intrinsic :: iso_fortran_env
             (2.0*(u(k, j, i-1)*(u(k, j, i)+u(k, j, i-1))-u(k, j, i+1)*(u(k, j, i)+u(k, j, i+1)))) + &
             (1.0*(u(k, j-1, i)*(v(k, j-1, i)+v(k, j-1, i+1))-u(k, j+1, i)*(v(k, j, i)+v(k, j, i+1)))) + &
             (tzc1(k)*u(k-1, j, i)*(w(k-1, j, i)+w(k-1, j, i+1))-tzc2(k)*u(k+1, j, i)*(w(k, j, i)+w(k, j, i+1)))   
+          su(k, j, i) = counter
 
           sv(k, j, i)=&
             (2.0*(v(k, j-1, i)*(v(k, j, i)+v(k, j-1, i))-v(k, j+1, i)*(v(k, j, i)+v(k, j+1, i)))) + &
             (2.0*(v(k, j, i-1)*(u(k, j, i-1)+u(k, j+1, i-1))-v(k, j, i+1)*(u(k, j, i)+u(k, j+1, i)))) + &
             (tzc1(k)*v(k-1, j, i)*(w(k-1, j, i)+w(k-1, j+1, i))-tzc2(k)*v(k+1, j, i)*(w(k, j, i)+w(k, j+1, i)))
+          sv(k, j, i) = counter
 
           sw(k, j, i)=&
             (tzd1(k)*w(k-1, j, i)*(w(k, j, i)+w(k-1, j, i))-tzd2(k)*w(k+1, j, i)*(w(k, j, i)+w(k+1, j, i))) + &
@@ -95,12 +97,31 @@ use, intrinsic :: iso_fortran_env
         do j=2,ny-1
             do k=2,nz
                 if ((i == 2 .and. j > 1 .and. k > 1) .or. i > 2) then
-                    write(*,*) sw(k,j,i)
+                    write(*,*) su(k,j,i)
                 end if
             end do
         end do
     end do
 
+    do i=2,nx-1
+        do j=2,ny-1
+            do k=2,nz
+                if ((i == 2 .and. j > 1 .and. k > 1) .or. i > 2) then
+                    write(*,*) sv(k,j,i)
+                end if
+            end do
+        end do
+    end do
+
+    do i=2,nx-1
+        do j=2,ny-1
+            do k=2,nz
+                if ((i == 2 .and. j > 1 .and. k > 1) .or. i > 2) then
+                    write(*,*) sw(k,j,i)
+                end if
+            end do
+        end do
+    end do
 
     deallocate(su)
     deallocate(sv)

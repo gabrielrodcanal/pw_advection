@@ -49,7 +49,10 @@ static void advect_u_chunk(hls::stream<struct stencil_data> & u_stencil_stream, 
           su_z=tzc1[k] * u_stencil.values[1][1][0] * (w_stencil.values[1][1][0] + w_stencil.values[2][1][0]);
         }
 #ifdef _TEST
-        result_stream.write(u_stencil.values[0][0][0]);
+        if (k < size_z - 1)
+            result_stream.write(u_stencil.values[0][0][0]);
+        else
+            result_stream.write(0);
 #else
         result_stream.write(su_x+su_y+su_z);
 #endif
@@ -97,7 +100,10 @@ static void advect_v_chunk(hls::stream<struct stencil_data> & u_stencil_stream, 
           sv_z=tzc1[k] * u_stencil.values[1][1][0] * (w_stencil.values[1][1][0] + w_stencil.values[1][2][0]);
         }
 #ifdef _TEST
-        result_stream.write(v_stencil.values[0][0][0]);
+        if(k < size_z - 1)
+            result_stream.write(v_stencil.values[0][0][0]);
+        else
+            result_stream.write(0);
 #else
         result_stream.write(sv_y+sv_x+sv_z);
 #endif

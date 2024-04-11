@@ -71,9 +71,25 @@ int main(int argc, char * argv[]) {
   unsigned int partial_kernel_x_size=size_in_x/NUM_KERNELS;
   size_t cube_size=partial_kernel_x_size * size_in_y * size_in_z;
 
-  int counter_zeros = 0;
-
   int z_counter = 0;
+  for(int i = 2*size_in_y*size_in_z; i < cube_size-2*size_in_y*size_in_z; i++) {
+        if(z_counter < (size_in_y-4) * (size_in_z-1)) 
+            printf("%lf\n", (su_data[0][i]));
+        z_counter++;
+        if(z_counter == size_in_y * (size_in_z))
+            z_counter = 0;
+  }
+
+  z_counter = 0;
+  for(int i = 2*size_in_y*size_in_z; i < cube_size-2*size_in_y*size_in_z; i++) {
+        if(z_counter < (size_in_y-4) * (size_in_z-1)) 
+            printf("%lf\n", (sv_data[0][i]));
+        z_counter++;
+        if(z_counter == size_in_y * (size_in_z))
+            z_counter = 0;
+  }
+
+  z_counter = 0;
   for(int i = 2*size_in_y*size_in_z; i < cube_size-2*size_in_y*size_in_z; i++) {
         if(z_counter < (size_in_y-4) * (size_in_z-1)) 
             printf("%lf\n", (sw_data[0][i]));
@@ -154,6 +170,26 @@ static void initiateData(unsigned int size_in_x, unsigned int size_in_y, unsigne
     // Data layout as in the original Fortran code. It takes halos into account
     int counter = 1;
     int y_counter = 0;
+    for (unsigned int j=size_in_y*size_in_z;j<cube_size-size_in_y*size_in_z;j+=size_in_z) {
+        if (y_counter < size_in_y-4) {
+            for(int k=1;k<size_in_z-1;k++)
+              (u_data[i])[j+k] = counter++;
+        }
+        y_counter = (y_counter + 1) % size_in_y;
+    }
+    
+    counter = 1;
+    y_counter = 0;
+    for (unsigned int j=size_in_y*size_in_z;j<cube_size-size_in_y*size_in_z;j+=size_in_z) {
+        if (y_counter < size_in_y-4) {
+            for(int k=1;k<size_in_z-1;k++)
+              (v_data[i])[j+k] = counter++;
+        }
+        y_counter = (y_counter + 1) % size_in_y;
+    }
+
+    counter = 1;
+    y_counter = 0;
     for (unsigned int j=size_in_y*size_in_z;j<cube_size-size_in_y*size_in_z;j+=size_in_z) {
         if (y_counter < size_in_y-4) {
             for(int k=1;k<size_in_z-1;k++)

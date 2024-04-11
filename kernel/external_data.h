@@ -133,9 +133,7 @@ static void write_y_and_z(hls::stream<REAL_TYPE> & in_su_stream, hls::stream<REA
 
     struct packaged_double element_sw;
     for(int j = 0; j < EXTERNAL_DATA_WIDTH; j++) element_sw.data[j] = 0.0;
-    for (int j=EXTERNAL_DATA_WIDTH-sp_remainder;j<EXTERNAL_DATA_WIDTH;j++) {
-        element_sw.data[j]=in_sw_stream.read();
-    }
+    for (int j=EXTERNAL_DATA_WIDTH-sp_remainder;j<EXTERNAL_DATA_WIDTH;j++) element_sw.data[j]=in_sw_stream.read();
     output_sw[start_point]=element_sw;
     start_point=start_point+1;
   }
@@ -152,9 +150,7 @@ static void write_y_and_z(hls::stream<REAL_TYPE> & in_su_stream, hls::stream<REA
     output_sv[i]=element_sv;
 
     struct packaged_double element_sw;
-    for (int j=0;j<8;j++) {
-        element_sw.data[j]=in_sw_stream.read();
-    }
+    for (int j=0;j<8;j++) element_sw.data[j]=in_sw_stream.read();
     output_sw[i]=element_sw;
   }
 
@@ -173,7 +169,7 @@ static void write_y_and_z(hls::stream<REAL_TYPE> & in_su_stream, hls::stream<REA
             element_su.data[j]=in_su_stream.read();
             remainding_elements_u--;
         }
-        output_su[main_retrieve_part + remainding_burst * EXTERNAL_DATA_WIDTH]=element_su;
+        output_su[main_retrieve_part + remainding_burst]=element_su;
         remainding_burst++;
     }
 
@@ -187,10 +183,9 @@ static void write_y_and_z(hls::stream<REAL_TYPE> & in_su_stream, hls::stream<REA
         int ub = (current_remainder_v < EXTERNAL_DATA_WIDTH) ? current_remainder_v : EXTERNAL_DATA_WIDTH;
         for (int j=0;j<ub;j++) {
             element_sv.data[j]=in_sv_stream.read();
-            output_sv[main_retrieve_part]=element_sv;
             remainding_elements_v--;
         }
-        output_su[main_retrieve_part + remainding_burst * EXTERNAL_DATA_WIDTH]=element_sv;
+        output_sv[main_retrieve_part + remainding_burst]=element_sv;
         remainding_burst++;
     }
 
