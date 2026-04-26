@@ -82,6 +82,7 @@ f-test:
 
 .PHONY: cpu
 cpu: cpu/cpu_code.c
+  mkdir -p bin
   g++ $(CXXFLAGS) -o bin/cpu_code '$<' $(CXXFLAGS2) -fopenmp
 
 .PHONY: emconfig
