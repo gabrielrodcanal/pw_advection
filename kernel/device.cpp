@@ -4,6 +4,7 @@
 #include "advect.h"
 #include "utils.h"
 #include <hls_stream.h>
+#include "device.h"
 
 static void advect_flow_fields(struct packaged_double*, struct packaged_double*, struct packaged_double*, struct packaged_double*, struct packaged_double*, struct packaged_double*,
     REAL_TYPE[MAX_Z_SIZE], REAL_TYPE[MAX_Z_SIZE], REAL_TYPE[MAX_Z_SIZE], REAL_TYPE[MAX_Z_SIZE], REAL_TYPE[MAX_Z_SIZE], REAL_TYPE[MAX_Z_SIZE],
@@ -11,7 +12,7 @@ static void advect_flow_fields(struct packaged_double*, struct packaged_double*,
 static void load_constants(REAL_TYPE*, REAL_TYPE*, REAL_TYPE*, REAL_TYPE*, REAL_TYPE[MAX_Z_SIZE], REAL_TYPE[MAX_Z_SIZE],
     REAL_TYPE[MAX_Z_SIZE], REAL_TYPE[MAX_Z_SIZE], REAL_TYPE[MAX_Z_SIZE], REAL_TYPE[MAX_Z_SIZE], unsigned int);
 
-extern "C" void pw_advection(struct packaged_double * u, struct packaged_double * v, struct packaged_double * w, struct packaged_double * su, struct packaged_double * sv, struct packaged_double * sw,
+void pw_advection(struct packaged_double * u, struct packaged_double * v, struct packaged_double * w, struct packaged_double * su, struct packaged_double * sv, struct packaged_double * sw,
     REAL_TYPE * tzc1, REAL_TYPE * tzc2, REAL_TYPE * tzd1, REAL_TYPE * tzd2, REAL_TYPE tcx, REAL_TYPE tcy, unsigned int size_x, unsigned int size_y, unsigned int size_z) {
 #pragma HLS INTERFACE m_axi port=su offset=slave bundle=in_port
 #pragma HLS INTERFACE m_axi port=sv offset=slave bundle=in_port

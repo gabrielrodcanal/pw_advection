@@ -66,7 +66,7 @@ $(HOST_EXE): host/host.cpp
   g++ $(CXXFLAGS) -o bin/host '$<' $(CXXFLAGS2)
 
 .PHONY: cpu
-cpu: cpu/cpu_code.c
+cpu: cpu/cpu_code.cpp
   g++ $(CXXFLAGS) -o bin/cpu_code '$<' $(CXXFLAGS2) -fopenmp
 
 .PHONY: emconfig

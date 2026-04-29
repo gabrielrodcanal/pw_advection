@@ -1,15 +1,18 @@
 #include <sys/time.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "cpu.h"
+#ifdef CPU_RUN
 #include <omp.h>
+#endif
 
 void advect_flow_fields_c(double*, double*, double*, double*, double*, double* , double*, double*,double*, double*, double, double,int, int, int, int, int, int, int);
 void advect_u_flow_field_c(double*, double*, double*, double* , double*, double*, double, double,int, int, int, int, int, int, int);
 void advect_v_flow_field_c(double*, double*, double*, double* , double*, double*, double, double,int, int, int, int, int, int, int);
 void advect_w_flow_field_c(double*, double*, double*, double* , double*, double*, double, double,int, int, int, int, int, int, int);
-static long getEpoch();
-static double getTiming(long, long);
-static long long getTotalFLOPS(int, int, int, int);
+long getEpoch();
+double getTiming(long, long);
+long long getTotalFLOPS(int, int, int, int);
 
 void advect_th_field_c(double * sth, double * th, double * u, double * v, double * w, double * tzc1, double * tzc2,
                         double cx, double cy, int size_x, int size_y, int size_z, int start_x, int end_x, int start_y, int end_y) {
@@ -41,6 +44,7 @@ void advect_th_field_c(double * sth, double * th, double * u, double * v, double
   }
 }
 
+#ifdef CPU_RUN
 int main(int argc, char * argv[]) {
 	int size_x=atoi(argv[1]), size_y=atoi(argv[2]), iterations=atoi(argv[3]), size_z=64;
 	int hs=2;
@@ -70,6 +74,7 @@ int main(int argc, char * argv[]) {
   printf("Overall GFLOPS %.2f\n", kernelFLOPS);
 	return 0;
 }
+#endif
 
 void advect_flow_fields_c(double * su, double * sv, double * sw, double * u, double * v, double * w, double * tzc1, double * tzc2,
 	double * tzd1, double * tzd2, double tcx, double tcy,
@@ -164,17 +169,17 @@ void advect_w_flow_field_c(double * sw, double * u, double * v, double * w, doub
   }
 }
 
-static long getEpoch() {
+long getEpoch() {
   struct timeval tm;
   gettimeofday(&tm, NULL);
   return (tm.tv_sec * 1000000)+tm.tv_usec;
 }
 
-static double getTiming(long end_time, long start_time) {
+double getTiming(long end_time, long start_time) {
   return (end_time - start_time) / 1.0e3 ;
 }
 
-static long long getTotalFLOPS(int x_size, int y_size, int z_size, int iterations) {
+long long getTotalFLOPS(int x_size, int y_size, int z_size, int iterations) {
   long long total_elements_xu=x_size * y_size * (z_size-1);
   long long lid_elements=x_size * y_size;
   long long non_lid_elements=total_elements_xu-lid_elements;
