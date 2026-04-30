@@ -59,7 +59,7 @@ int main() {
     int size_z = 16;
     int iterations = 1;
 
-	int hs=1;
+	int hs=3;
 	int start_x=hs, end_x=size_x+hs, start_y=hs, end_y=size_y+hs;
 	int field_x=size_x+(hs*2), field_y=size_y+(hs*2), field_z=size_z+(hs*2);
     double * su=(double *) malloc(sizeof(double) * field_x * field_y * field_z);

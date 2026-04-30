@@ -78,32 +78,32 @@ int main(int argc, char * argv[]) {
 
 void advect_flow_fields_c(double * su, double * sv, double * sw, double * u, double * v, double * w, double * tzc1, double * tzc2,
 	double * tzd1, double * tzd2, double tcx, double tcy,
-                            int size_x, int size_y, int size_z, int start_x, int end_x, int start_y, int end_y) {
-	advect_u_flow_field_c(su, u, v, w, tzc1, tzc2, tcx, tcy, size_x, size_y, size_z, start_x, end_x, start_y, end_y);
-	advect_v_flow_field_c(sv, u, v, w, tzc1, tzc2, tcx, tcy, size_x, size_y, size_z, start_x, end_x, start_y, end_y);
-	advect_w_flow_field_c(sw, u, v, w, tzd1, tzd2, tcx, tcy, size_x, size_y, size_z, start_x, end_x, start_y, end_y);
+                            int size_x, int size_y, int size_z, int start_x, int end_x, int start_y, int end_y, int hs) {
+	advect_u_flow_field_c(su, u, v, w, tzc1, tzc2, tcx, tcy, size_x, size_y, size_z, start_x, end_x, start_y, end_y, hs);
+	advect_v_flow_field_c(sv, u, v, w, tzc1, tzc2, tcx, tcy, size_x, size_y, size_z, start_x, end_x, start_y, end_y, hs);
+	advect_w_flow_field_c(sw, u, v, w, tzd1, tzd2, tcx, tcy, size_x, size_y, size_z, start_x, end_x, start_y, end_y, hs);
 }
 
 void advect_u_flow_field_c(double * su, double * u, double * v, double * w, double * tzc1, double * tzc2, double tcx, double tcy,
-                            int size_x, int size_y, int size_z, int start_x, int end_x, int start_y, int end_y) {
+                            int size_x, int size_y, int size_z, int start_x, int end_x, int start_y, int end_y, int hs) {
   int i, j, k, counter_loc, counter_loc_xp1, counter_loc_xm1, counter_loc_yp1, counter_loc_ym1, counter_loc_ym1_xp1;
 #pragma omp parallel for private(i, counter_loc, counter_loc_xp1, counter_loc_xm1, counter_loc_yp1, counter_loc_ym1, j, k)
   for (i=start_x;i<end_x;i++) {
-    counter_loc=(i * size_y * size_z) + (size_z * start_y);
+    counter_loc=(i * size_y * size_z) + (size_z * start_y) + hs;
     counter_loc_xp1=((i+1) * size_y * size_z) + (size_z * start_y);
     counter_loc_xm1=((i-1) * size_y * size_z) + (size_z * start_y);
     counter_loc_yp1=(i * size_y * size_z) + (size_z * (start_y+1));
     counter_loc_ym1=(i * size_y * size_z) + (size_z * (start_y-1));
     counter_loc_ym1_xp1=((i+1) * size_y * size_z) + (size_z * (start_y-1));
     for (j=start_y;j<end_y;j++) {
-      for (k=1;k<size_z;k++) {
+      for (k=hs;k<size_z-hs;k++) {
         counter_loc_xp1++;
         counter_loc_xm1++;
         counter_loc_yp1++;
         counter_loc_ym1++;
         su[counter_loc]=tcx*(u[counter_loc_xm1] * (u[counter_loc] + u[counter_loc_xm1]) - u[counter_loc_xp1] * (u[counter_loc] + u[counter_loc_xp1]));
         su[counter_loc]=su[counter_loc]+tcy*(u[counter_loc_ym1] * (v[counter_loc_ym1] + v[counter_loc_ym1_xp1]) - u[counter_loc_yp1] * (v[counter_loc] + v[counter_loc_xp1]));
-        if (k < size_z - 1) {
+        if (k < size_z - (hs+1)) {
           su[counter_loc]=su[counter_loc]+(tzc1[k] * u[counter_loc-1] * (w[counter_loc-1] + w[counter_loc_xp1-1]) - tzc2[k] * u[counter_loc+1] * (w[counter_loc] + w[counter_loc_xp1]));
           counter_loc++;
         } else {
@@ -112,7 +112,7 @@ void advect_u_flow_field_c(double * su, double * u, double * v, double * w, doub
           // TODO: consult with Nick why this was added
           //su[counter_loc]=su[counter_loc]+(tzc1[k] * u[counter_loc-1] * (w[counter_loc-1] + w[counter_loc_xp1-1]) - tzc2[k] * u[counter_loc+1] * (w[counter_loc] + w[counter_loc_xp1]));
           su[counter_loc]=su[counter_loc]+tzc1[k] * u[counter_loc-1] * (w[counter_loc-1] + w[counter_loc_xp1-1]);
-          counter_loc+=2;
+          counter_loc+=2*hs+1;
         }
       }
     }
@@ -120,28 +120,30 @@ void advect_u_flow_field_c(double * su, double * u, double * v, double * w, doub
 }
 
 void advect_v_flow_field_c(double * sv, double * u, double * v, double * w, double * tzc1, double * tzc2, double tcx, double tcy,
-                            int size_x, int size_y, int size_z, int start_x, int end_x, int start_y, int end_y) {
+                            int size_x, int size_y, int size_z, int start_x, int end_x, int start_y, int end_y, int hs) {
   int i, j, k, counter_loc, counter_loc_xp1, counter_loc_xm1, counter_loc_yp1, counter_loc_ym1;
 #pragma omp parallel for private(i, counter_loc, counter_loc_xp1, counter_loc_xm1, counter_loc_yp1, counter_loc_ym1, j, k)
   for (i=start_x;i<end_x;i++) {
-    counter_loc=(i * size_y * size_z) + (size_z * start_y);
+    counter_loc=(i * size_y * size_z) + (size_z * start_y) + hs;
     counter_loc_xp1=((i+1) * size_y * size_z) + (size_z * start_y);
     counter_loc_xm1=((i-1) * size_y * size_z) + (size_z * start_y);
     counter_loc_yp1=(i * size_y * size_z) + (size_z * (start_y+1));
     counter_loc_ym1=(i * size_y * size_z) + (size_z * (start_y-1));
     for (j=start_y;j<end_y;j++) {
-      for (k=1;k<size_z;k++) {
-        counter_loc++;
+      for (k=hs;k<size_z-hs;k++) {
         counter_loc_xp1++;
         counter_loc_xm1++;
         counter_loc_yp1++;
         counter_loc_ym1++;
         sv[counter_loc]=tcy * (v[counter_loc_ym1] * (v[counter_loc] + v[counter_loc_ym1]) - v[counter_loc_yp1] * (v[counter_loc] + v[counter_loc_yp1]));
         sv[counter_loc]=sv[counter_loc]+tcx*(v[counter_loc_xm1] * (u[counter_loc_xm1] + u[counter_loc_yp1]) - v[counter_loc_xp1] * (u[counter_loc] + u[counter_loc_yp1]));
-        if (k < size_z - 1) {
-          sv[counter_loc]=sv[counter_loc]+(tzc1[k] * v[counter_loc-1] * (w[counter_loc-1] + w[counter_loc_yp1-1]) - tzc2[k] * v[counter_loc+1] * (w[counter_loc] + w[counter_loc_yp1]));        } else {
+        if (k < size_z - (hs+1)) {
+          sv[counter_loc]=sv[counter_loc]+(tzc1[k] * v[counter_loc-1] * (w[counter_loc-1] + w[counter_loc_yp1-1]) - tzc2[k] * v[counter_loc+1] * (w[counter_loc] + w[counter_loc_yp1]));        
+          counter_loc++;
+        } else {
           // Lid
           sv[counter_loc]=sv[counter_loc]+tzc1[k] * v[counter_loc-1] * (w[counter_loc-1] + w[counter_loc_yp1-1]);
+          counter_loc+=2*hs+1;
         }
       }
     }
@@ -149,18 +151,17 @@ void advect_v_flow_field_c(double * sv, double * u, double * v, double * w, doub
 }
 
 void advect_w_flow_field_c(double * sw, double * u, double * v, double * w, double * tzd1, double * tzd2, double tcx, double tcy,
-                            int size_x, int size_y, int size_z, int start_x, int end_x, int start_y, int end_y) {
+                            int size_x, int size_y, int size_z, int start_x, int end_x, int start_y, int end_y, int hs) {
   int i, j, k, counter_loc, counter_loc_xp1, counter_loc_xm1, counter_loc_yp1, counter_loc_ym1;
 #pragma omp parallel for private(i, counter_loc, counter_loc_xp1, counter_loc_xm1, counter_loc_yp1, counter_loc_ym1, j, k)
   for (i=start_x;i<end_x;i++) {
-    counter_loc=(i * size_y * size_z) + (size_z * start_y);
+    counter_loc=(i * size_y * size_z) + (size_z * start_y) + hs;
     counter_loc_xp1=((i+1) * size_y * size_z) + (size_z * start_y);
     counter_loc_xm1=((i-1) * size_y * size_z) + (size_z * start_y);
     counter_loc_yp1=(i * size_y * size_z) + (size_z * (start_y+1));
     counter_loc_ym1=(i * size_y * size_z) + (size_z * (start_y-1));
     for (j=start_y;j<end_y;j++) {
-      for (k=1;k<size_z-1;k++) {
-        counter_loc++;
+      for (k=hs;k<size_z-hs;k++) {
         counter_loc_xp1++;
         counter_loc_xm1++;
         counter_loc_yp1++;
@@ -168,7 +169,9 @@ void advect_w_flow_field_c(double * sw, double * u, double * v, double * w, doub
         sw[counter_loc]=tzd1[k] * w[counter_loc-1] * (w[counter_loc] + w[counter_loc-1]) - tzd2[k] * w[counter_loc+1] * (w[counter_loc] + w[counter_loc+1]);
         sw[counter_loc]=sw[counter_loc]+tcx*(w[counter_loc_xm1]*(u[counter_loc] + u[counter_loc_xm1+1]) - w[counter_loc_xp1] * (u[counter_loc] + u[counter_loc+1]));
         sw[counter_loc]=sw[counter_loc]+tcy*(w[counter_loc_ym1] * (v[counter_loc_ym1] + v[counter_loc_ym1+1]) - w[counter_loc_yp1] * (v[counter_loc] + v[counter_loc+1]));
+        counter_loc++;
       }
+      counter_loc+=2*hs;
     }
   }
 }
