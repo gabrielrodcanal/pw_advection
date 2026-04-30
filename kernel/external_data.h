@@ -96,10 +96,14 @@ void write_data(hls::stream<REAL_TYPE> & in_su_stream, hls::stream<REAL_TYPE> & 
 
   chunk_loop:
   for (unsigned int chunk_num=0;chunk_num < number_chunks;chunk_num++) {
+    printf("CHUNK NUM: %d\n", chunk_num);
     unsigned int chunk_size=get_chunk_size(chunk_num, number_chunks, MAX_Y_SIZE-2, remainder);
     x_read_loop:
     for (unsigned int i=2;i<size_x-2;i++) {
       unsigned int start_index=(i*size_y*size_z) + (((MAX_Y_SIZE - 2) * chunk_num) * size_z);
+      printf("START_INDEX: %d\n", start_index);
+      //write_y_and_z(in_su_stream, in_sv_stream, in_sw_stream, output_su, output_sv, output_sw, start_index, chunk_size, size_z-1);
+      // NOTE: Why size_z-1? This changes how many elements are written per slice, so the output differs wrt CPU.
       write_y_and_z(in_su_stream, in_sv_stream, in_sw_stream, output_su, output_sv, output_sw, start_index, chunk_size, size_z-1);
     }
   }
@@ -110,12 +114,14 @@ static void write_y_and_z(hls::stream<REAL_TYPE> & in_su_stream, hls::stream<REA
   unsigned int start_point=start_index / EXTERNAL_DATA_WIDTH;
   unsigned int sp_remainder=EXTERNAL_DATA_WIDTH - (start_index - (start_point * EXTERNAL_DATA_WIDTH));
 
-  unsigned int total_write=(chunk_size_y*size_z) / EXTERNAL_DATA_WIDTH;
+  printf("----> CHUNK SIZE Y: %d, START_POINT: %d, SP_REMAINDER: %d\n", chunk_size_y, start_point, sp_remainder);
+  unsigned int total_write=(chunk_size_y*(size_z)) / EXTERNAL_DATA_WIDTH; // size_z+1 to account for the zeroes at the end of each z slice
   unsigned int main_retrieve_part=start_point+total_write;
 
   if (sp_remainder > 0 && sp_remainder < EXTERNAL_DATA_WIDTH) {
     struct packaged_double element_su;
     for (int j=EXTERNAL_DATA_WIDTH-sp_remainder;j<EXTERNAL_DATA_WIDTH;j++) element_su.data[j]=in_su_stream.read();
+    printf("file: %s, line: %d, sp_remainder=%d, start_point=%d\n", __FILE__, __LINE__, sp_remainder, start_point);
     output_su[start_point]=element_su;
 
     struct packaged_double element_sv;
@@ -129,11 +135,45 @@ static void write_y_and_z(hls::stream<REAL_TYPE> & in_su_stream, hls::stream<REA
   }
 
   write_data_loop:
+  // Start of the loop
+  int written_elements=0;
+  int index_offset = 2*(size_z+1) / EXTERNAL_DATA_WIDTH;
+  int data_offset = 2*(size_z+1) % EXTERNAL_DATA_WIDTH;
+  printf("----> DATA OFFSET: %d, INDEX_OFFSET: %d, SIZE_Z: %d\n", data_offset, index_offset, size_z);
+  struct packaged_double element_su;
+  for (int j=data_offset;j<8;j++) {
+    element_su.data[j]=in_su_stream.read();
+    written_elements++;
+    //if(element_su.data[j] == 0.0) {
+    //  printf("ZERO IN i: %d, j: %d\n", __FILE__, __LINE__, i, j);
+    //}
+  };
+  start_point+=(data_offset > 0) ? index_offset+1 : index_offset;
+  output_su[start_point]=element_su;
+  start_point++;
+  main_retrieve_part+= (data_offset > 0) ? index_offset+2 : index_offset+1;
+
   for (unsigned int i=start_point;i<main_retrieve_part;i++) {
 #pragma HLS PIPELINE II=8
     struct packaged_double element_su;
-    for (int j=0;j<8;j++) element_su.data[j]=in_su_stream.read();
+    printf("----> FIRST POSITION TO WRITE IN MAIN LOOP: %d\n", i*EXTERNAL_DATA_WIDTH);
+
+    for (int j=0;j<8;j++) {
+      if((i*EXTERNAL_DATA_WIDTH + j) % (size_z+1) == size_z) {
+      //if(written_elements % (size_z) == 0) {
+        printf("----> REACHED Z BOUNDARY at i: %d, j: %d, written_elements: %d, i*EXTERNAL_DATA_WIDTH + j: %d\n", i, j, written_elements, i*EXTERNAL_DATA_WIDTH + j);
+        element_su.data[j]=0.0;
+      }
+      else {
+        element_su.data[j]=in_su_stream.read();
+        written_elements++;
+      }
+      //if(element_su.data[j] == 0.0) {
+      //  printf("ZERO IN i: %d, j: %d\n", __FILE__, __LINE__, i, j);
+      //}
+    };
     output_su[i]=element_su;
+    //printf("file: %s, line: %d, i: %d\n", __FILE__, __LINE__, i);
 
     struct packaged_double element_sv;
     for (int j=0;j<8;j++) element_sv.data[j]=in_sv_stream.read();
@@ -147,6 +187,7 @@ static void write_y_and_z(hls::stream<REAL_TYPE> & in_su_stream, hls::stream<REA
   // Now do the remainder elements if doesn't divide evenly
   unsigned int remainder=(chunk_size_y*size_z) - (total_write*EXTERNAL_DATA_WIDTH) + (EXTERNAL_DATA_WIDTH - sp_remainder);
   if (remainder > 0) {
+    printf("(REMAINDER) file: %s, line: %d\n", __FILE__, __LINE__);
     struct packaged_double element_su;
     remainder_u_loop:
     for (int j=0;j<remainder;j++) element_su.data[j]=in_su_stream.read();

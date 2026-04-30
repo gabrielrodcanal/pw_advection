@@ -110,8 +110,8 @@ void advect_u_flow_field_c(double * su, double * u, double * v, double * w, doub
           // Lid
           // NOTE: The original Fortran code does not have a lid condition. Removing for now to match the golden reference. 
           // TODO: consult with Nick why this was added
-          su[counter_loc]=su[counter_loc]+(tzc1[k] * u[counter_loc-1] * (w[counter_loc-1] + w[counter_loc_xp1-1]) - tzc2[k] * u[counter_loc+1] * (w[counter_loc] + w[counter_loc_xp1]));
-          //su[counter_loc]=su[counter_loc]+tzc1[k] * u[counter_loc-1] * (w[counter_loc-1] + w[counter_loc_xp1-1]);
+          //su[counter_loc]=su[counter_loc]+(tzc1[k] * u[counter_loc-1] * (w[counter_loc-1] + w[counter_loc_xp1-1]) - tzc2[k] * u[counter_loc+1] * (w[counter_loc] + w[counter_loc_xp1]));
+          su[counter_loc]=su[counter_loc]+tzc1[k] * u[counter_loc-1] * (w[counter_loc-1] + w[counter_loc_xp1-1]);
           counter_loc+=2;
         }
       }

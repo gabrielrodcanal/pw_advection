@@ -14,6 +14,7 @@ void print_3d_array(double * array, int size_x, int size_y, int size_z, const ch
     }
     
     for (int i = 0; i < size_x; i++) {
+        fprintf(file, "X=%d\n", i);
         for (int j = 0; j < size_y; j++) {
             for (int k = 0; k < size_z; k++) {
                 fprintf(file, "%f ", array[(i * size_y * size_z) + (j * size_z) + k]);
@@ -33,17 +34,19 @@ void print_3d_array_packed(struct packaged_double * array, int size_x, int size_
         return;
     }
     
-    int total_elements = size_x * size_y * size_z;
-    for (int i = 0; i < total_elements; i++) {
-        int packed_index = i / EXTERNAL_DATA_WIDTH;
-        int offset = i % EXTERNAL_DATA_WIDTH;
-        fprintf(file, "%f ", array[packed_index].data[offset]);
-        if ((i + 1) % size_z == 0) {
+    for (int i = 0; i < size_x; i++) {
+        fprintf(file, "X=%d\n", i);
+        for (int j = 0; j < size_y; j++) {
+            for (int k = 0; k < size_z; k++) {
+                int index = (i * size_y * size_z) + (j * size_z) + k;
+                //printf("---> PRITNING INDEX: %d\n", index);
+                int packed_index = index / EXTERNAL_DATA_WIDTH;
+                int offset = index % EXTERNAL_DATA_WIDTH;
+                fprintf(file, "%f ", array[packed_index].data[offset]);
+            }
             fprintf(file, "\n");
         }
-        if ((i + 1) % (size_y * size_z) == 0) {
-            fprintf(file, "\n");
-        }
+        fprintf(file, "\n");
     }
     
     if (filename) fclose(file);
@@ -53,7 +56,7 @@ int main() {
 	//int size_x=atoi(argv[1]), size_y=atoi(argv[2]), iterations=atoi(argv[3]), size_z=64;
     int size_x = 8;
     int size_y = 8;
-    int size_z = 8;
+    int size_z = 16;
     int iterations = 1;
 
 	int hs=2;
@@ -127,7 +130,7 @@ int main() {
     // CPU version
     long start=getEpoch();
     for (i=0;i<iterations;i++) {
-       advect_flow_fields_c(su, sv, sw, u, v, w, tzc1, tzc2, tzd1, tzd2, 1.0, 2.0, field_x, field_y, size_z, start_x, end_x, start_y, end_y);
+       advect_flow_fields_c(su, sv, sw, u, v, w, tzc1, tzc2, tzd1, tzd2, 99.4, 12.3, field_x, field_y, size_z, start_x, end_x, start_y, end_y);
     }
     double overalltime=getTiming(getEpoch(), start);
     printf("Runtime is %f ms\n", overalltime);
@@ -137,7 +140,7 @@ int main() {
 
     // RTL version
     for (i=0;i<iterations;i++) {
-        pw_advection(u_rtl, v_rtl, w_rtl, su_rtl, sv_rtl, sw_rtl, tzc1_rtl, tzc2_rtl, tzd1_rtl, tzd2_rtl, 1.0, 2.0, field_x, field_y, size_z);
+        pw_advection(u_rtl, v_rtl, w_rtl, su_rtl, sv_rtl, sw_rtl, tzc1_rtl, tzc2_rtl, tzd1_rtl, tzd2_rtl, 99.4, 12.3, field_x, field_y, size_z);
     }
 
     // Compare results
