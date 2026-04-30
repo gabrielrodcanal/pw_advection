@@ -57,18 +57,9 @@ program main
       end do
     end do
 
-
-    ! Print su array to file
-    open(unit=10, file='su_output.txt', status='replace', action='write')
-    do i=1, nx
-      write(10, '(A,I0)') 'X=', i-1
-      do k=1, nz
-        write(10, '(*(F12.6,1X))') (su(k,j,i), j=1,ny)
-      end do
-      write(10, *)
-    end do
-    close(10)
-
+    call print_3d_array(su, nx, ny, nz, 'su_output.txt')
+    call print_3d_array(sv, nx, ny, nz, 'sv_output.txt')
+    call print_3d_array(sw, nx, ny, nz, 'sw_output.txt')
 
     deallocate(su)
     deallocate(sv)
@@ -80,4 +71,33 @@ program main
     deallocate(tzc2)
     deallocate(tzd1)
     deallocate(tzd2)
+
+contains
+
+    subroutine print_3d_array(arr, nx_in, ny_in, nz_in, filename)
+      real*8, dimension(:,:,:), intent(in) :: arr
+      integer, intent(in) :: nx_in, ny_in, nz_in
+      character(len=*), intent(in), optional :: filename
+      integer :: i, j, k, unit
+
+      if (present(filename)) then
+        unit = 10
+        open(unit=unit, file=filename, status='replace', action='write')
+      else
+        unit = 6
+      end if
+
+      do i = 1, nx_in
+        write(unit, '(A,I0)') 'X=', i-1
+        do j = 1, ny_in
+          write(unit, '(*(F12.6,1X))') (arr(k, j, i), k = 1, nz_in)
+        end do
+        write(unit, *)
+      end do
+
+      if (present(filename)) then
+        close(unit)
+      end if
+    end subroutine print_3d_array
+
 end program main
